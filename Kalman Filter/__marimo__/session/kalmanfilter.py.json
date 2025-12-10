@@ -1,0 +1,333 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.18.4"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "595d4f65fc468a4ab006e4d6d16e8b6a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"kalman-filter-for-imu-data\">Kalman Filter for IMU Data</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "64ae90ffc7c391ddaa803ecf8b30267c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"helpers\">Helpers</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "3c595fa3385261fc848576e6640d99a1",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"basic-theory\">Basic Theory</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "ea151b60c8e2d9d442bc538f81888430",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">The Kalman Filter is a state estimation algorithm that provides both an estimate of the current state and a prediction of the future state, along with a measure of their uncertainty. Moreover, it is an optimal algorithm that minimizes state estimation uncertainty. That is why the Kalman Filter has become such a widely used and trusted algorithm.\n<img alt=\"image.png\" src=\"attachment:9da2823c-b347-485d-8982-982818808463.png\" /></span>\n<span class=\"paragraph\">The Kalman Filter output is a multivariate random variable. A covariance matrix describes the squared uncertainty of the multivariate random variable.</span>\n<span class=\"paragraph\">The uncertainty variables of the multivariate Kalman Filter are:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(P_{n,n}||)</marimo-tex> - is a covariance matrix that describes the squared uncertainty of an estimate</li>\n<li><marimo-tex class=\"arithmatex\">||(P_{n+1,n}||)</marimo-tex> - is a covariance matrix that describes the squared uncertainty of a prediction</li>\n<li><marimo-tex class=\"arithmatex\">||(R_n||)</marimo-tex> - is a covariance matrix that describes the squared measurement uncertainty</li>\n<li><marimo-tex class=\"arithmatex\">||(Q||)</marimo-tex> - is a covariance matrix that describes the process noise</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "0132bb233609a55c6815e8d28861254e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"state-extrapolation-equation\">State Extrapolation Equation</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "1357ee08e59eea27bfe2adef4c035e9a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Using the state extrapolation equation, we can predict the next system state based on the knowledge of the current state. It extrapolates the state vector from the present (time step n) to the future (time step n+1).</span>\n<span class=\"paragraph\">The predicted system state equation is:\n<marimo-tex class=\"arithmatex\">||(<marimo-tex class=\"arithmatex\">||(\\hat{x}_{n+1,n} = F\\hat{x}_{n,n} + Gu_n + w_n||)</marimo-tex>||)</marimo-tex></span>\n<span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(\\hat{x}_{n+1,n}||)</marimo-tex> is a <strong>predicted system state vector</strong> at time step <marimo-tex class=\"arithmatex\">||(n + 1||)</marimo-tex></li>\n<li><marimo-tex class=\"arithmatex\">||(\\hat{x}_{n,n}||)</marimo-tex> is an <strong>estimated system state vector</strong> at time step <marimo-tex class=\"arithmatex\">||(n||)</marimo-tex></li>\n<li><marimo-tex class=\"arithmatex\">||(u_n||)</marimo-tex> is a <strong>control variable</strong> or <strong>input variable</strong> - a <marimo-tex class=\"arithmatex\">||(\\text{measurable}||)</marimo-tex> (deterministic) input to the system</li>\n<li><marimo-tex class=\"arithmatex\">||(w_n||)</marimo-tex> is a <strong>process noise</strong> or disturbance - an <marimo-tex class=\"arithmatex\">||(\\text{unmeasurable}||)</marimo-tex> input that affects the state</li>\n<li><marimo-tex class=\"arithmatex\">||(F||)</marimo-tex> is a <strong>state transition matrix</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(G||)</marimo-tex> is a <strong>control matrix</strong> or <marimo-tex class=\"arithmatex\">||(\\text{input transition matrix}||)</marimo-tex> (mapping control to state variables)</li>\n</ul>\n<h4 id=\"linear-dynamic-systems\">Linear dynamic systems</h4>\n<span class=\"paragraph\">For zero-order hold sampling, assuming the input is piecewise constant, the general solution of the state space equation in the form of:\n<marimo-tex class=\"arithmatex\">||(<marimo-tex class=\"arithmatex\">||(\\dot{x}(t) = Ax(t) + Bu(t)||)</marimo-tex>||)</marimo-tex>\nis given by:\n<marimo-tex class=\"arithmatex\">||(<marimo-tex class=\"arithmatex\">||(x(t + \\Delta t) = \\underbrace{e^{A\\Delta t}}_{\\text{F}} x(t) + \\underbrace{\\int_{0}^{\\Delta t} e^{A\\tau} B u(t) d\\tau}_{\\text{G}}||)</marimo-tex>||)</marimo-tex></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "2de52672f31b48d22593518aeba50987",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"covariance-extrapolation-equation\">Covariance Extrapolation Equation</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "cbbcda7cf3b99825fa35ad1cc32a7a31",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">The general form of the Covariance Extrapolation Equation is given by:</span>\n<marimo-tex class=\"arithmatex\">||[P_{n+1,n} = FP_{n,n}F^T + Q||]</marimo-tex><span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(P_{n,n}||)</marimo-tex> is the <strong>squared uncertainty of an estimate</strong> (covariance matrix) of the current state</li>\n<li><marimo-tex class=\"arithmatex\">||(P_{n+1,n}||)</marimo-tex> is the <strong>squared uncertainty of a prediction</strong> (covariance matrix) for the next state</li>\n<li><marimo-tex class=\"arithmatex\">||(F||)</marimo-tex> is the <strong>state transition matrix</strong> that we derived in the \"Modeling linear dynamic systems\" section</li>\n<li><marimo-tex class=\"arithmatex\">||(Q||)</marimo-tex> is the <strong>process noise matrix</strong></li>\n</ul>\n<span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(w_n||)</marimo-tex> is the process noise at the time step n. In the multidimensional case, the process noise is a covariance matrix denoted by Q. Process noise variance has a critical influence on the Kalman Filter performance. Too small q causes a lag error. If the q value is too high, the Kalman Filter follows the measurements and produces noisy estimations.</span>\n<span class=\"paragraph\">The process noise can be independent between different state variables. In this case, the process noise covariance matrix Q is a diagonal matrix.The process noise can also be dependent. For example, the constant velocity model assumes zero acceleration (a=0). However, a random variance in acceleration causes a variance in velocity and position. In this case, the process noise is correlated with the state variables.</span>\n<span class=\"paragraph\">There are two models for the environmental process noise.</span>\n<ul>\n<li>Discrete noise model</li>\n<li>Continuous noise model</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "b9fb2d41acc15a4cfeab80ffc1fef261",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"measurement-equation\">Measurement Equation</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "bfdb62aec8e6b74bc76475c685f88e79",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">The generalized measurement equation in matrix form is given by:</span>\n<marimo-tex class=\"arithmatex\">||[z_n = Hx_n + v_n||]</marimo-tex><span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{z}_n||)</marimo-tex> is a <strong>measurement vector</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{x}_n||)</marimo-tex> is a <strong>true system state</strong> (hidden state)</li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{v}_n||)</marimo-tex> is a <strong>random noise vector</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{H}||)</marimo-tex> is an <strong>observation matrix</strong></li>\n</ul>\n<span class=\"paragraph\">In many cases, the measured value is not the desired system state. For example, a digital electric thermometer measures an electric current, while the system state is the temperature. There is a need for a transformation of the system state (input) to the measurement (output). The purpose of the observation matrix H is to convert the system state into outputs using linear transformations. The following chapters include examples of observation matrix usage.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "21f713fbb1e1bead3ff7ddffa34aa192",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"covariance-equations\">Covariance Equations</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "d40e4bef0d5bed3850107ab5de2dcdd3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h4 id=\"measurement-uncertainty\">Measurement Uncertainty</h4>\n<span class=\"paragraph\">The measurement covariance is given by:\n<marimo-tex class=\"arithmatex\">||(<marimo-tex class=\"arithmatex\">||(R_n = E(\\mathbf{v}_n \\mathbf{v}_n^T)||)</marimo-tex>||)</marimo-tex></span>\n<span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{R}_n||)</marimo-tex> is the <strong>covariance matrix of the measurement</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{v}_n||)</marimo-tex> is the <strong>measurement error</strong></li>\n</ul>\n<h4 id=\"process-noise-uncertainty\">Process Noise Uncertainty</h4>\n<span class=\"paragraph\">The process noise covariance is given by:\n<marimo-tex class=\"arithmatex\">||(<marimo-tex class=\"arithmatex\">||(Q_n = E(\\mathbf{w}_n \\mathbf{w}_n^T)||)</marimo-tex>||)</marimo-tex></span>\n<span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{Q}_n||)</marimo-tex> is the <strong>covariance matrix of the process noise</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{w}_n||)</marimo-tex> is the <strong>process noise</strong></li>\n</ul>\n<h4 id=\"estimation-uncertainty\">Estimation Uncertainty</h4>\n<span class=\"paragraph\">The estimation covariance is given by:\n<marimo-tex class=\"arithmatex\">||(<marimo-tex class=\"arithmatex\">||(P_{n,n} = E(\\mathbf{e}_n \\mathbf{e}_n^T) = E((\\mathbf{x}_n - \\hat{\\mathbf{x}}_{n,n}) (\\mathbf{x}_n - \\hat{\\mathbf{x}}_{n,n})^T)||)</marimo-tex>||)</marimo-tex></span>\n<span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{P}_{n,n}||)</marimo-tex> is the <strong>covariance matrix of the estimation error</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{e}_n||)</marimo-tex> is the <strong>estimation error</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{x}_n||)</marimo-tex> is the <strong>true system state</strong> (hidden state)</li>\n<li><marimo-tex class=\"arithmatex\">||(\\hat{\\mathbf{x}}_{n,n}||)</marimo-tex> is the <strong>estimated system state vector at time step <marimo-tex class=\"arithmatex\">||(n||)</marimo-tex></strong></li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "f785798032b74601ca680d353d298b68",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"state-update-equation\">State Update Equation</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "e090b6d292509996d9427cf6caee1c7e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">The State Update Equation in the matrix form is given by,</span>\n<marimo-tex class=\"arithmatex\">||[\\hat{x}_{n,n} = \\hat{x}_{n,n-1} + K_n (z_n - H\\hat{x}_{n,n-1})||]</marimo-tex><span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(\\hat{x}_{n,n}||)</marimo-tex> is an <strong>estimated system state vector at time step <marimo-tex class=\"arithmatex\">||(n||)</marimo-tex></strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\hat{x}_{n,n-1}||)</marimo-tex> is a <strong>predicted system state vector at time step <marimo-tex class=\"arithmatex\">||(n - 1||)</marimo-tex></strong></li>\n<li><marimo-tex class=\"arithmatex\">||(K_n||)</marimo-tex> is a <strong>Kalman Gain</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(z_n||)</marimo-tex> is a <strong>measurement</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(H||)</marimo-tex> is an <strong>observation matrix</strong></li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "c1d4265aaf7c5acded3f9df29b6ab556",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"covariance-update-equation\">Covariance Update Equation</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "c9623ce4ddd60cebb34620d18f998d4e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">The Covariance Update Equation is given by,</span>\n<marimo-tex class=\"arithmatex\">||[P_{n,n} = (I - K_n H) P_{n,n-1} (I - K_n H)^T + K_n R_n K_n^T||]</marimo-tex><span class=\"paragraph\">where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(P_{n,n}||)</marimo-tex> is the <strong>covariance matrix of the current state estimation</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(P_{n,n-1}||)</marimo-tex> is the <strong>prior estimate covariance matrix of the current state</strong> (predicted at the previous state)</li>\n<li><marimo-tex class=\"arithmatex\">||(K_n||)</marimo-tex> is the <strong>Kalman Gain</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(H||)</marimo-tex> is the <strong>observation matrix</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(R_n||)</marimo-tex> is the <strong>measurement noise covariance matrix</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(I||)</marimo-tex> is an <strong>Identity Matrix</strong> (the <marimo-tex class=\"arithmatex\">||(n \\times n||)</marimo-tex> square matrix with ones on the main diagonal and zeros elsewhere)</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "af8c4bc2934031d1f8a1910bd3fb7a7d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"kalman-gain-equation\">Kalman Gain Equation</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "26dcd5f8316a1af77cbeee4a17387680",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">The Kalman Gain in matrix notation is given by,</span>\n<marimo-tex class=\"arithmatex\">||[K_n = P_{n,n-1}H^T (HP_{n,n-1}H^T + R_n)^{-1}||]</marimo-tex><span class=\"paragraph\">Where:</span>\n<ul>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{K}_n||)</marimo-tex> is the <strong>Kalman Gain</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{P}_{n,n-1}||)</marimo-tex> is the <strong>prior estimate covariance matrix of the current state</strong> (predicted at the previous step)</li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{H}||)</marimo-tex> is the <strong>observation matrix</strong></li>\n<li><marimo-tex class=\"arithmatex\">||(\\mathbf{R}_n||)</marimo-tex> is the <strong>measurement noise covariance matrix</strong></li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "fbee05903c979c0a5eb3bc3523ece590",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"summary\">Summary</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "6d97f3a8db30055ecae8c42a6c5bd442",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><img alt=\"image.png\" src=\"attachment:7e559476-d6f0-4f2c-adf7-affc7c5ceac3.png\" /></span>\n<span class=\"paragraph\">The following table summarizes notation (including differences found in the literature) and dimensions.</span>\n<table>\n<thead>\n<tr>\n<th style=\"text-align: center;\">Term</th>\n<th style=\"text-align: left;\">Name</th>\n<th style=\"text-align: center;\">Alternative term</th>\n<th style=\"text-align: center;\">Dimensions</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{x}||)</marimo-tex></td>\n<td style=\"text-align: left;\">State Vector</td>\n<td style=\"text-align: center;\"></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_x \\times 1||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{z}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Measurements Vector</td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{y}||)</marimo-tex></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_z \\times 1||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{F}||)</marimo-tex></td>\n<td style=\"text-align: left;\">State Transition Matrix</td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{\\Phi}, \\mathbf{A}||)</marimo-tex></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_x \\times n_x||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{u}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Input Variable</td>\n<td style=\"text-align: center;\"></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_u \\times 1||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{G}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Control Matrix</td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{B}||)</marimo-tex></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_x \\times n_u||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{P}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Estimate Covariance</td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{\\Sigma}||)</marimo-tex></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_x \\times n_x||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{Q}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Process Noise Covariance</td>\n<td style=\"text-align: center;\"></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_x \\times n_x||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{R}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Measurement Covariance</td>\n<td style=\"text-align: center;\"></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_z \\times n_z||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{w}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Process Noise Vector</td>\n<td style=\"text-align: center;\"></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_x \\times 1||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{v}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Measurement Noise Vector</td>\n<td style=\"text-align: center;\"></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_z \\times 1||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{H}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Observation Matrix</td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{C}||)</marimo-tex></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_z \\times n_x||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{K}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Kalman Gain</td>\n<td style=\"text-align: center;\"></td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(n_x \\times n_z||)</marimo-tex></td>\n</tr>\n<tr>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{n}||)</marimo-tex></td>\n<td style=\"text-align: left;\">Discrete-Time Index</td>\n<td style=\"text-align: center;\"><marimo-tex class=\"arithmatex\">||(\\mathbf{k}||)</marimo-tex></td>\n<td style=\"text-align: center;\"></td>\n</tr>\n</tbody>\n</table></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "bd2890c87c8be684be576e4093830d43",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"linear-euler-angle-kalman-filter\">Linear Euler-Angle Kalman Filter</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "501b4eab10f081e19f7aa6aa003c838e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">In this note, I derive a simple <strong>linear Kalman filter</strong> for estimating <strong>Euler angles</strong>,</span>\n<ul>\n<li>Roll, (<marimo-tex class=\"arithmatex\">||(\\phi||)</marimo-tex>)</li>\n<li>Pitch, (<marimo-tex class=\"arithmatex\">||(\\theta||)</marimo-tex>)</li>\n<li>Yaw, ($\\psi</li>\n</ul>\n<span class=\"paragraph\">Assume:</span>\n<ul>\n<li><strong>Gyroscope</strong> gives angular rates <marimo-tex class=\"arithmatex\">||((p, q, r)||)</marimo-tex> around body axes.</li>\n<li><strong>Accelerometer</strong> is used to estimate roll and pitch from gravity.</li>\n<li><strong>Yaw is not corrected</strong> (it will drift).</li>\n</ul>\n<span class=\"paragraph\">Use a <strong>discrete-time linear state-space model</strong> and the <strong>standard Kalman filter</strong>,</span>\n<ul>\n<li>Prediction: use gyro to propagate angles.</li>\n<li>Update: use accelerometer to correct roll &amp; pitch.</li>\n</ul>\n<hr />\n<h3 id=\"1-state-inputs-and-measurements\">1. State, Inputs, and Measurements</h3>\n<h4 id=\"11-state-vector\">1.1 State Vector</h4>\n<span class=\"paragraph\">Define the state vector as the three Euler angles,\n$x_k =\n\\begin{bmatrix}\n\\phi_k\\\n\\theta_k\\\n\\psi_k\n\\end{bmatrix}\n$</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "835365ae27bd891cd10c3d4acab6edca",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "c01432ed89a9c5861225d963bdf604f6",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "internal",
+          "evalue": "An internal error occurred: 6deb7c5f-3a77-4b3a-a7a5-3434439f2791",
+          "traceback": []
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}
