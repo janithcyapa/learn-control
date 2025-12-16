@@ -1,0 +1,12 @@
+pyproject.toml
+QAttitude/__init__.py
+QAttitude.egg-info/PKG-INFO
+QAttitude.egg-info/SOURCES.txt
+QAttitude.egg-info/dependency_links.txt
+QAttitude.egg-info/requires.txt
+QAttitude.egg-info/top_level.txt
+QAttitude/plot/__init__.py
+QAttitude/plot/attitude.py
+QAttitude/rep/__init__.py
+QAttitude/rep/euler.py
+QAttitude/rep/quaternion.py
